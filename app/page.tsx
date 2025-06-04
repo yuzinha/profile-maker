@@ -99,7 +99,31 @@ export default function ProfileMaker() {
       })
 
       if (response.ok) {
-        const { id } = await response.json()
+        const { id, profile } = await response.json()
+
+        // ローカルストレージに保存
+        localStorage.setItem(`profile_${id}`, JSON.stringify(profile))
+
+        // 保存済みプロフィール一覧も更新
+        const existingProfiles = JSON.parse(localStorage.getItem("saved_profiles") || "[]")
+        const profileSummary = {
+          id: profile.id,
+          name: profile.name,
+          nameRomaji: profile.nameRomaji,
+          createdAt: profile.createdAt,
+          updatedAt: profile.updatedAt,
+        }
+
+        // 重複チェック
+        const existingIndex = existingProfiles.findIndex((p: any) => p.id === id)
+        if (existingIndex >= 0) {
+          existingProfiles[existingIndex] = profileSummary
+        } else {
+          existingProfiles.unshift(profileSummary)
+        }
+
+        localStorage.setItem("saved_profiles", JSON.stringify(existingProfiles))
+
         const url = `${window.location.origin}/${id}`
         setProfileUrl(url)
         setShowShare(true)

@@ -28,15 +28,27 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`/api/profiles/${params.id}`)
-        if (response.ok) {
-          const data = await response.json()
+        // まずローカルストレージから取得を試行
+        const localData = localStorage.getItem(`profile_${params.id}`)
+        if (localData) {
+          const data = JSON.parse(localData)
           setProfileData(data)
           setProfileUrl(window.location.href)
+          setLoading(false)
+          return
         }
+
+        // ローカルストレージにない場合はAPIを呼び出し（IDの妥当性チェックのため）
+        const response = await fetch(`/api/profiles/${params.id}`)
+        if (!response.ok) {
+          setLoading(false)
+          return
+        }
+
+        // プロフィールが見つからない場合
+        setLoading(false)
       } catch (error) {
         console.error("Profile fetch error:", error)
-      } finally {
         setLoading(false)
       }
     }

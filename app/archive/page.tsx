@@ -23,11 +23,9 @@ export default function ArchivePage() {
 
   const fetchProfiles = async () => {
     try {
-      const response = await fetch("/api/profiles")
-      if (response.ok) {
-        const data = await response.json()
-        setProfiles(data.profiles)
-      }
+      // ローカルストレージから保存済みプロフィール一覧を取得
+      const savedProfiles = JSON.parse(localStorage.getItem("saved_profiles") || "[]")
+      setProfiles(savedProfiles)
     } catch (error) {
       console.error("Profiles fetch error:", error)
     } finally {
@@ -41,16 +39,16 @@ export default function ArchivePage() {
     }
 
     try {
-      const response = await fetch(`/api/profiles/${id}`, {
-        method: "DELETE",
-      })
+      // ローカルストレージから削除
+      localStorage.removeItem(`profile_${id}`)
 
-      if (response.ok) {
-        setProfiles(profiles.filter((profile) => profile.id !== id))
-        alert("プロフィールを削除しました")
-      } else {
-        alert("削除に失敗しました")
-      }
+      // 保存済みプロフィール一覧からも削除
+      const savedProfiles = JSON.parse(localStorage.getItem("saved_profiles") || "[]")
+      const updatedProfiles = savedProfiles.filter((profile: any) => profile.id !== id)
+      localStorage.setItem("saved_profiles", JSON.stringify(updatedProfiles))
+
+      setProfiles(updatedProfiles)
+      alert("プロフィールを削除しました")
     } catch (error) {
       console.error("Delete error:", error)
       alert("削除に失敗しました")
